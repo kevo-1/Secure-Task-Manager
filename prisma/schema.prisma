@@ -13,6 +13,7 @@ model User {
   password  String
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   tasks     Task[]
 
   @@map("users")
@@ -26,8 +27,9 @@ model Task {
   priority    Priority   @default(MEDIUM)
   dueDate     DateTime?
   userId      Int
-  createdAt   DateTime   @default(now())
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@map("tasks")
 }
