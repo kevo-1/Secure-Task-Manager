@@ -15,6 +15,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   tasks     Task[]
+  logs      Log[]
 
   @@map("users")
 }
@@ -32,6 +33,16 @@ model Task {
   updatedAt   DateTime   @updatedAt
 
   @@map("tasks")
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  action    String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("logs")
 }
 
 enum TaskStatus {
