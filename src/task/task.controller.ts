@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TaskService } from './task.service';
+import { LogService } from '../log/log.service';
 import { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from './dto/task.dto';
 
 interface AuthenticatedRequest extends Request {
@@ -23,14 +24,19 @@ interface AuthenticatedRequest extends Request {
 @Controller('tasks')
 @UseGuards(AuthGuard('jwt'))
 export class TaskController {
-  constructor(private taskService: TaskService) {}
+  constructor(
+    private taskService: TaskService,
+    private logService: LogService,
+  ) {}
 
   @Post()
   async createTask(
     @Body() dto: CreateTaskDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<TaskResponseDto> {
-    return this.taskService.createTask(dto, req.user.id);
+    const task = await this.taskService.createTask(dto, req.user.id);
+    await this.logService.createLog(req.user.id, `TASK_CREATED: ${task.id}`);
+    return task;
   }
 
   @Get()
@@ -68,7 +74,9 @@ export class TaskController {
     if (task.userId !== req.user.id) {
       throw new ForbiddenException('You do not have access to this task');
     }
-    return this.taskService.updateTask(id, dto);
+    const updatedTask = await this.taskService.updateTask(id, dto);
+    await this.logService.createLog(req.user.id, `TASK_UPDATED: ${id}`);
+    return updatedTask;
   }
 
   @Delete(':id')
@@ -83,6 +91,8 @@ export class TaskController {
     if (task.userId !== req.user.id) {
       throw new ForbiddenException('You do not have access to this task');
     }
-    return this.taskService.deleteTask(id);
+    const deletedTask = await this.taskService.deleteTask(id);
+    await this.logService.createLog(req.user.id, `TASK_DELETED: ${id}`);
+    return deletedTask;
   }
 }
